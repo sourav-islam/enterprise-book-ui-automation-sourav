@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pytest and Execution Artifacts
+.pytest_cache/
+.htmlreport/
+report.html
+reports/
+test-results/
+
+# Allure Reports
+allure-results/
+allure-report/
+
+# Local system configurations
+.DS_Store
+*.db
+.vscode/
+.idea/
