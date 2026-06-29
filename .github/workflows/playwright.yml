@@ -1,0 +1,68 @@
+name: Playwright UI Automation CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Ensure Playwright Browsers are Installed
+      run: playwright install chromium --with-deps
+
+    - name: Run Modular Automation Suite
+      env:
+        # Prevents cloud infrastructure runners from failing due to empty proxy routes
+        HTTP_PROXY: ""
+        HTTPS_PROXY: ""
+      run: |
+        pytest --html=report.html --self-contained-html --alluredir=allure-results
+
+    - name: Upload Pytest HTML Report Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-html-report
+        path: report.html
+        retention-days: 7
+
+    - name: Load Allure Report History
+      if: always()
+      continue-on-error: true
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: gh-pages
+
+    - name: Build Allure Report Dashboard
+      if: always()
+      uses: simple-elf/allure-report-action@master
+      with:
+        allure_results: allure-results
+        allure_history: allure-history
+        keep_reports: 20
+
+    - name: Deploy Allure Report to GitHub Pages
+      if: always()
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: allure-history
